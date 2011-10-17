@@ -209,7 +209,7 @@ static int write_vec(xcb_connection_t *c, struct iovec **vector, int *count)
 
     if(n <= 0)
     {
-        _xcb_conn_shutdown(c);
+        _xcb_conn_shutdown(c, XCB_CONN_ERROR);
         return 0;
     }
 
@@ -317,9 +317,9 @@ void xcb_disconnect(xcb_connection_t *c)
 
 /* Private interface */
 
-void _xcb_conn_shutdown(xcb_connection_t *c)
+void _xcb_conn_shutdown(xcb_connection_t *c, int err)
 {
-    c->has_error = 1;
+    c->has_error = err;
 }
 
 int _xcb_conn_wait(xcb_connection_t *c, pthread_cond_t *cond, struct iovec **vector, int *count)
@@ -380,7 +380,7 @@ int _xcb_conn_wait(xcb_connection_t *c, pthread_cond_t *cond, struct iovec **vec
     } while (ret == -1 && errno == EINTR);
     if(ret < 0)
     {
-        _xcb_conn_shutdown(c);
+        _xcb_conn_shutdown(c, XCB_CONN_ERROR);
         ret = 0;
     }
     pthread_mutex_lock(&c->iolock);

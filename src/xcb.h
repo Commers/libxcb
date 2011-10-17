@@ -69,6 +69,18 @@ extern "C" {
 /** X_TCP_PORT + display number = server port for TCP transport */
 #define X_TCP_PORT 6000
 
+/** xcb connection shutdown because of connection errors for eg socket errors, pipe errors and other stream errors. */
+#define XCB_CONN_ERROR 1
+
+/** xcb connection shutdown because of extension not sppported */
+#define XCB_CONN_CLOSED_EXT_NOTSUPPORTED 2
+
+/** malloc(), calloc() and realloc() error upon failure, for eg ENOMEM */
+#define XCB_CONN_CLOSED_MEMORY_INSUFFICIENT 3
+
+/** Connection closed, exceeding request length that server accepts.  */
+#define XCB_CONN_CLOSED_REQ_LEN_EXCEED 4
+
 #define XCB_TYPE_PAD(T,I) (-(I) & (sizeof(T) > 4 ? 3 : sizeof(T) - 1))
 
 /* Opaque structures */
@@ -396,15 +408,17 @@ int xcb_get_file_descriptor(xcb_connection_t *c);
 /**
  * @brief Test whether the connection has shut down due to a fatal error.
  * @param c: The connection.
- * @return 1 if the connection is in an error state; 0 otherwise.
+ * @return > 0 if the connection is in an error state; 0 otherwise.
  *
  * Some errors that occur in the context of an xcb_connection_t
  * are unrecoverable. When such an error occurs, the
  * connection is shut down and further operations on the
  * xcb_connection_t have no effect.
  *
- * @todo Other functions should document the conditions in
- * which they shut down the connection.
+ * @return XCB_CONN_ERROR, connection error because of socket errors, pipe errors or other stream errors.
+ * @return XCB_CONN_CLOSED_EXT_NOTSUPPORTED, connection closed when extension not supported.
+ * @return XCB_CONN_CLOSED_MEMORY_INSUFFICIENT, connection closed when memory not available.
+ * @return XCB_CONN_CLOSED_REQ_LEN_EXCEED, connection closed, exceeding request length that server accepts.
  */
 int xcb_connection_has_error(xcb_connection_t *c);
 
